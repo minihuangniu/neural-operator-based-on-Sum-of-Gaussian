@@ -1,0 +1,37 @@
+# 假设 test_samples 是你从测试数据集中获取的数据集
+test_samples = test_loaders[16].dataset
+
+# 获取一个样本
+data = test_samples[0]
+
+# 假设你的数据处理类已经将数据传递过来了，像是一个字典格式的数据
+# 在这个例子中，我们可以直接访问 x 和 y
+x = data['x']  # 形状：[1, 16]，这是空间坐标的输入数据（如果需要的话可以用来做对比）
+print(type(x))
+print(x.shape)
+y = data['y']  # 形状：[1, 17, 16]，这是随时间变化的输出数据
+print(type(y))
+print(y.shape)
+print(animation.writers.list())
+# 创建一个图形
+fig, ax = plt.subplots(figsize=(7, 7))
+
+# 初始显示（第0时间步的数据）
+line, = ax.plot(x[0, :].numpy(), y[0, 0, :].numpy(), label='y(t=0)', color='b')
+ax.set_title(f'Ground-truth y at t=0')
+ax.set_xlabel('Space (x)')
+ax.set_ylabel('Value (y)')
+ax.legend()
+
+# 更新函数，用来更新动画中的内容
+def update(frame):
+    line.set_ydata(y[0, frame, :].numpy())  # 更新y的值，保持x不变
+    ax.set_title(f'Ground-truth y at t={frame}')  # 更新标题，显示当前时间步
+    return line,  # 返回line以便更新
+
+# 创建动画对象，interval 设置为每500毫秒更新一次
+ani = animation.FuncAnimation(fig, update, frames=range(17), interval=500, blit=True)
+
+ani.save('animation.gif', writer='pillow', fps=10)
+
+plt.tight_layout()
